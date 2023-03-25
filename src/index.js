@@ -106,6 +106,10 @@ app.get("/users",(req,res)=>{
     })()
 })
 
+app.get("/",(req,res)=>{
+    console.log(req.originalUrl)
+})
+
 //websocket setup
 httpServer.on("upgrade",function(request,socket,head){
     console.log(request.headers.cookie)
