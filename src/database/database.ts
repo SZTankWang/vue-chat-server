@@ -7,6 +7,12 @@ const decoder = new util.TextDecoder();
 const uri = "mongodb+srv://zhenmingwang:sfls2012101@cluster0.mgy0es3.mongodb.net/?retryWrites=true&w=majority"
 const client = new MongoClient(uri)
 
+export enum AuthResult{
+  Success=1,
+  WrongPassword=2,
+  NonExist=3
+}
+
 function exitHandler(){
   console.log("closing db connection")
   client.close(true)
@@ -24,14 +30,25 @@ async function run() {
   }
 run().catch(console.dir);
 
- export async function validateUser(username:string,password:string):Promise<any>{
+ export async function validateUser(username:string,password:string):Promise<[number,string]>{
     let database = client.db("vue-chat")
     const users = database.collection("users")
-    const query = {username:username,password:password}
+    const query = {username:username}
     const user = await users.findOne(query)
-    
-    //the query result 
-    return user;
+    console.log("validate result:",user);
+
+    //if doesn't, return non-exist
+    if(user==null){
+      return [AuthResult.NonExist,""];
+    }
+    //compare password 
+    if(password == user.password){
+      return [AuthResult.Success,user._id.toString()];
+    }
+    else{
+      return [AuthResult.WrongPassword,""];
+    }
+
   }
 
   export async function createUser(username:string,password:string){

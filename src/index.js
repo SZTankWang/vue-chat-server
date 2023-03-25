@@ -10,7 +10,7 @@ import { signJWT,verifyJWT } from "./auth.ts"
 import { createWS,sendMessage } from "./websocket/websocket.ts"
 import http, { Server } from "http"
 import cookieParser from "cookie-parser"
-
+import {AuthResult} from "./database/database.ts";
 const app = express()
 const port = 3000
 
@@ -29,40 +29,63 @@ app.post("/authenticate",(req,res)=>{
     console.log(req.body);
     let username = req.body["username"];
     let password = req.body["password"];
-    let status=200;
+
     let jwt="";
     let id=null;
     //search for user 
     (async function(){
-        const result = await validateUser(username,password)
-        //if doesn't exist, create one
-        if(result==null){
-            //create new 
-            let insertResult= await createUser(username,password);
-            if(insertResult.acknowledged){
-                console.log("inserted",insertResult.insertedId);
-                id = insertResult.insertedId.toString();
-                status = 200
-                //create jwt 
-                jwt = signJWT({username:username,id:id})
-            }
-            else{
-                console.log("insertion failed")
-                status = 500
-            }
+        const [result,id] = await validateUser(username,password)
+        //result: 1, 2, 3
+        //if doesn't exist, return status code, user will make another request
+        if(result==AuthResult.NonExist){
+            res.status(404).send()
         }
-        else{
-            console.log("user exist",result)
-            id = result._id.toString()
+        //if doesn't exist, create one
+        else if (result==AuthResult.Success){
+            console.log("user exist",id)            
             //create jwt 
             jwt = signJWT({username:username,id:id})
+            setTimeout(()=>res.status(200).cookie("token",jwt,{httpOnly:true,sameSite:"None",secure:true}).json({id:id}),2000)
+
         }
-        setTimeout(()=>res.status(status).cookie("token",jwt,{httpOnly:true,sameSite:"None",secure:true}).json({id:id}),2000)
+        else if (result == AuthResult.WrongPassword){
+            console.log("wrong password")
+            res.status(401).send();
+        }
+
+        
+        
+         
     })()
 
     
 
 })
+
+//创建新用户逻辑
+app.post("/register",(req,res)=>{
+    console.log("registering",req.body);
+    let username = req.body["username"];
+    let password = req.body["password"];
+    //create new 
+    (async function(){
+        let insertResult= await createUser(username,password);
+        if(insertResult.acknowledged){
+            console.log("inserted",insertResult.insertedId);
+            let id = insertResult.insertedId.toString();
+
+            //create jwt 
+            let jwt = signJWT({username:username,id:id})
+            res.status(200).send();
+        }
+        else{
+            console.log("insertion failed")
+            res.status(500).send();
+        }
+    })()
+
+})
+
 app.use("/users",(req,res,next)=>{
     console.log("validating token",req.cookies)
     if(verifyJWT(req.cookies.token)!==undefined){
