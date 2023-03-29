@@ -45,7 +45,7 @@ app.post("/authenticate",(req,res)=>{
             console.log("user exist",id)            
             //create jwt 
             jwt = signJWT({username:username,id:id})
-            setTimeout(()=>res.status(200).cookie("token",jwt,{httpOnly:true,sameSite:"None"}).json({id:id}),2000)
+            setTimeout(()=>res.status(200).cookie("token",jwt,{httpOnly:true,sameSite:"None",secure:true}).json({id:id}),2000)
 
         }
         else if (result == AuthResult.WrongPassword){
