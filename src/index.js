@@ -76,7 +76,7 @@ app.post("/register",(req,res)=>{
 
             //create jwt 
             let jwt = signJWT({username:username,id:id})
-            res.status(200).send();
+            res.status(200).cookie("token",jwt,{httpOnly:true,sameSite:"None",secure:true}).json({id:id});
         }
         else{
             console.log("insertion failed")
