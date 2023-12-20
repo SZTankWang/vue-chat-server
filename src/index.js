@@ -5,12 +5,12 @@ import {
     createUser,
     findAllUsers,
     storeMessage}
-    from "./database/database.ts"
-import { signJWT,verifyJWT } from "./auth.ts"
-import { createWS,sendMessage } from "./websocket/websocket.ts"
+    from "./database/database"
+import { signJWT,verifyJWT } from "./auth"
+import { createWS,sendMessage } from "./websocket/websocket"
 import http, { Server } from "http"
 import cookieParser from "cookie-parser"
-import {AuthResult} from "./database/database.ts";
+import {AuthResult} from "./database/database";
 const app = express()
 const port = 3000
 
