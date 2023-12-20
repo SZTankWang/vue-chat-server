@@ -14,7 +14,7 @@ import {AuthResult} from "./database/database.js";
 const app = express()
 const port = 3000
 
-// app.use(cors({credentials:true,origin:true}))
+app.use(cors({credentials:true,origin:true}))
 app.use(express.json());       // to support JSON-encoded bodies
 app.use(express.urlencoded()); // to support URL-encoded bodies
 app.use(cookieParser())
